@@ -1,0 +1,27 @@
+---
+import AktuellesSeite from '../../../components/AktuellesSeite.astro';
+import { alleMeldungen, PRO_SEITE, type Meldung } from '../../../lib/inhalte';
+
+export async function getStaticPaths() {
+  const alle = await alleMeldungen();
+  const seiten = Math.ceil(alle.length / PRO_SEITE);
+  // Seite 1 liegt unter /aktuelles/, hier entstehen die Seiten 2 bis N.
+  return Array.from({ length: Math.max(0, seiten - 1) }, (_, i) => {
+    const seite = i + 2;
+    return {
+      params: { seite: String(seite) },
+      props: { meldungen: alle.slice((seite - 1) * PRO_SEITE, seite * PRO_SEITE), seite, seiten },
+    };
+  });
+}
+
+interface Props {
+  meldungen: Meldung[];
+  seite: number;
+  seiten: number;
+}
+
+const { meldungen, seite, seiten } = Astro.props;
+---
+
+<AktuellesSeite meldungen={meldungen} seite={seite} seiten={seiten} />

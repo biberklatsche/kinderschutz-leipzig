@@ -1,0 +1,102 @@
+---
+// Eine Seite der Meldungsübersicht samt Blätterleiste; wird von /aktuelles/ und /aktuelles/seite/N/ verwendet.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MeldungenListe from './MeldungenListe.astro';
+import type { Meldung } from '../lib/inhalte';
+
+interface Props {
+  meldungen: Meldung[];
+  seite: number;
+  seiten: number;
+}
+
+const { meldungen, seite, seiten } = Astro.props;
+const url = (n: number) => (n === 1 ? '/aktuelles/' : `/aktuelles/seite/${n}/`);
+const nummern = Array.from({ length: seiten }, (_, i) => i + 1);
+---
+
+<BaseLayout
+  title={seite === 1 ? 'Aktuelles' : `Aktuelles, Seite ${seite}`}
+  description="Meldungen, Termine und Stellungnahmen des Kinderschutz-Zentrums Leipzig."
+>
+  <div class="wrap page-head">
+    <h1>Aktuelles</h1>
+  </div>
+
+  <div class="wrap list">
+    <MeldungenListe meldungen={meldungen} />
+
+    {
+      seiten > 1 && (
+        <nav class="pager" aria-label="Seiten der Meldungen">
+          {seite > 1 && (
+            <a class="step" href={url(seite - 1)} rel="prev">
+              Neuere Meldungen
+            </a>
+          )}
+          <ol>
+            {nummern.map((n) => (
+              <li>
+                <a href={url(n)} aria-current={n === seite ? 'page' : undefined} aria-label={`Seite ${n}`}>
+                  {n}
+                </a>
+              </li>
+            ))}
+          </ol>
+          {seite < seiten && (
+            <a class="step" href={url(seite + 1)} rel="next">
+              Ältere Meldungen
+            </a>
+          )}
+        </nav>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .list {
+    padding-bottom: var(--section);
+  }
+
+  .pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-top: 36px;
+  }
+
+  .pager ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pager ol a {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--r-control);
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .pager ol a:hover {
+    background: var(--mist);
+  }
+
+  .pager ol a[aria-current='page'] {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .step {
+    font-weight: 600;
+  }
+</style>

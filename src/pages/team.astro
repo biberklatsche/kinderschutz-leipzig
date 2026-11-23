@@ -1,0 +1,81 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const team = (await getCollection('team', ({ data }) => !data.entwurf)).sort(
+  (a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+---
+
+<BaseLayout title="Team" description="Das Team des Kinderschutz-Zentrums Leipzig mit seinen Qualifikationen.">
+  <div class="wrap page-head">
+    <h1>Team</h1>
+    <p class="lead">Diese Menschen beraten und begleiten Sie im Kinderschutz-Zentrum Leipzig.</p>
+  </div>
+
+  <div class="wrap">
+    <ul class="people">
+      {
+        team.map((p) => (
+          <li>
+            {p.data.foto && (
+              <Image class="photo" src={p.data.foto} alt={`Porträt von ${p.data.name}`} width={223} loading="lazy" />
+            )}
+            <h2>{p.data.name}</h2>
+            {p.data.rolle && <p class="role">{p.data.rolle}</p>}
+            {p.data.qualifikationen.length > 0 && (
+              <ul class="quals">
+                {p.data.qualifikationen.map((q) => (
+                  <li>{q}</li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .people {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 40px 32px;
+    margin: 0;
+    padding: 0 0 var(--section);
+    list-style: none;
+  }
+
+  .photo {
+    width: 223px;
+    max-width: 100%;
+    aspect-ratio: 3 / 2;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    object-fit: cover;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .role {
+    margin: 4px 0 0;
+    color: var(--orange-deep);
+    font-weight: 600;
+  }
+
+  .quals {
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .quals li + li {
+    margin-top: 4px;
+  }
+</style>

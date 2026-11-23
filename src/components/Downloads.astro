@@ -1,0 +1,75 @@
+---
+import einstellungen from '../data/einstellungen.json';
+import { dateigroesse } from '../lib/inhalte';
+
+const gruppen = new Map<string, typeof einstellungen.downloads>();
+for (const d of einstellungen.downloads) {
+  if (!gruppen.has(d.gruppe)) gruppen.set(d.gruppe, []);
+  gruppen.get(d.gruppe)!.push(d);
+}
+---
+
+<div class="groups">
+  {
+    [...gruppen].map(([gruppe, dateien]) => (
+      <section>
+        <h3>{gruppe}</h3>
+        <ul class="rows">
+          {dateien.map((d) => {
+            const groesse = dateigroesse(d.datei);
+            return (
+              <li>
+                <a href={d.datei}>
+                  <span>{d.titel}</span>
+                  <span class="meta">PDF{groesse && `, ${groesse}`}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 48px;
+  }
+
+  h3 {
+    margin-bottom: 14px;
+  }
+
+  a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 14px;
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  a:hover span:first-child {
+    text-decoration: underline;
+    text-decoration-color: var(--orange);
+    text-decoration-thickness: 2px;
+  }
+
+  .meta {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  @media (width <= 720px) {
+    .groups {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

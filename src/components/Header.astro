@@ -1,0 +1,178 @@
+---
+import Bildmarke from '../assets/logo/bildmarke.svg';
+
+const links = [
+  { href: '/angebote/', label: 'Angebote' },
+  { href: '/team/', label: 'Team' },
+  { href: '/aktuelles/', label: 'Aktuelles' },
+  { href: '/foerderverein/', label: 'Förderverein' },
+  { href: '/kontakt/', label: 'Kontakt' },
+];
+// Ohne den Unterordner der Vorschau (import.meta.env.BASE_URL), sonst wäre nie ein Menüpunkt aktiv.
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+const path = Astro.url.pathname.slice(base.length) || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Kinderschutz-Zentrum Leipzig, zur Startseite">
+      <Bildmarke class="brand-mark" width="40" height="46" aria-hidden="true" />
+      <span class="brand-name">Kinderschutz-Zentrum <span class="brand-city">Leipzig</span></span>
+    </a>
+
+    <nav class="nav" aria-label="Hauptmenü">
+      {links.map((l) => <a href={l.href} aria-current={isCurrent(l.href) ? 'page' : undefined}>{l.label}</a>)}
+    </nav>
+
+    <details class="menu">
+      <summary>Menü</summary>
+      <nav class="menu-panel" aria-label="Hauptmenü">
+        <a href="/" aria-current={path === '/' ? 'page' : undefined}>Startseite</a>
+        {links.map((l) => <a href={l.href} aria-current={isCurrent(l.href) ? 'page' : undefined}>{l.label}</a>)}
+      </nav>
+    </details>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid transparent;
+    background: rgb(255 255 255 / 0.84);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: border-color 0.3s;
+  }
+
+  :global(html.scrolled) .site-header {
+    border-bottom-color: var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 10px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 46px;
+  }
+
+  .brand-name {
+    font-family: var(--font-display);
+    font-stretch: 80%;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.05;
+  }
+
+  .brand-city {
+    display: block;
+    color: var(--orange-deep);
+    font-weight: 500;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav a,
+  .menu-panel a {
+    padding: 10px 12px;
+    border-radius: var(--r-control);
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .nav a:hover,
+  .menu-panel a:hover {
+    background: var(--mist);
+  }
+
+  .nav a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-color: var(--orange);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.35em;
+  }
+
+  .menu {
+    display: none;
+    position: relative;
+  }
+
+  .menu > summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 2px solid var(--ink);
+    border-radius: var(--r-control);
+    color: var(--ink);
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .menu > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu[open] > summary {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .menu-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 240px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgb(31 45 58 / 0.16);
+  }
+
+  .menu-panel a[aria-current='page'] {
+    background: var(--orange-soft);
+  }
+
+  @media (width <= 860px) {
+    .nav {
+      display: none;
+    }
+
+    .menu {
+      display: block;
+    }
+  }
+
+  @media (width <= 380px) {
+    .brand-name {
+      font-size: 1.0625rem;
+    }
+  }
+</style>

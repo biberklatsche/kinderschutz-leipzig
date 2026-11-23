@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import einstellungen from '../data/einstellungen.json';
+---
+
+<BaseLayout title="Seite nicht gefunden">
+  <div class="wrap page-head">
+    <h1>Diese Seite gibt es nicht</h1>
+    <p class="lead">
+      Die Adresse ist falsch oder die Seite wurde verschoben. Über die Startseite und die Angebote finden Sie weiter.
+    </p>
+    <p class="actions">
+      <a class="btn" href="/">Zur Startseite</a>
+      <a class="btn btn--quiet" href="/angebote/">Angebote ansehen</a>
+    </p>
+    <p>
+      Sie möchten uns direkt erreichen? Telefon: <a href={`tel:${einstellungen.telefonLink}`}>{einstellungen.telefon}</a>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-head {
+    padding-bottom: var(--section);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 28px 0;
+  }
+</style>

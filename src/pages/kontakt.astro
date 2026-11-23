@@ -1,0 +1,237 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import einstellungen from '../data/einstellungen.json';
+import { routenLink } from '../lib/inhalte';
+import karte from '../assets/karte/standorte.png';
+
+const e = einstellungen;
+---
+
+<BaseLayout
+  title="Kontakt"
+  description="Telefon, Anmeldung, Öffnungszeiten und Standorte des Kinderschutz-Zentrums Leipzig in der Südvorstadt und in Lößnig."
+>
+  <div class="wrap page-head">
+    <h1>Kontakt</h1>
+  </div>
+
+  <div class="wrap cols">
+    <section class="box box--orange">
+      <h2>Telefon und E-Mail</h2>
+      <p><a class="phone-link" href={`tel:${e.telefonLink}`}>{e.telefon}</a></p>
+      <p><strong>Telefonzeiten:</strong> {e.telefonzeiten.zeit}</p>
+      <p>{e.telefonzeiten.hinweis}</p>
+      <dl class="pairs">
+        <dt>E-Mail</dt>
+        <dd><a href={`mailto:${e.email}`}>{e.email}</a></dd>
+        <dt>Fax</dt>
+        <dd>{e.fax}</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Anmeldung</h2>
+      <p>{e.anmeldung.text}</p>
+      <p><strong>{e.anmeldung.kinder}</strong></p>
+      <p>{e.anmeldung.anrufbeantworter}</p>
+      <p>
+        Für eine erste Orientierung gibt es die
+        <a href="/angebote/telefonische-einmalberatung/">telefonische Einmalberatung</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Öffnungszeiten</h2>
+      <dl class="pairs times">
+        {
+          e.oeffnungszeiten.map((o) => (
+            <>
+              <dt>{o.tage}</dt>
+              <dd>{o.zeit}</dd>
+            </>
+          ))
+        }
+      </dl>
+    </section>
+  </div>
+
+  <section class="section section--mist">
+    <div class="wrap">
+      <h2 class="places-title">Standorte</h2>
+      <div class="places">
+        <ol class="place-list">
+          {
+            e.standorte.map((s, i) => (
+              <li>
+                <span class="pin" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3>{s.name}</h3>
+                  <p>
+                    {s.strasse}
+                    <br />
+                    {s.ort}
+                  </p>
+                  {s.hinweis && <p class="muted">{s.hinweis}</p>}
+                  <p>
+                    <a class="more-link" href={routenLink(s.strasse, s.ort)} rel="noopener noreferrer">
+                      Route planen (Google Maps)
+                    </a>
+                  </p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+        <figure class="map">
+          <Image
+            src={karte}
+            alt="Kartenausschnitt des Leipziger Südens mit den beiden Standorten: 1 Beratungsstelle Südvorstadt, 2 Nebenstelle Lößnig."
+            widths={[640, 960, 1400]}
+            sizes="(max-width: 900px) 100vw, 700px"
+            loading="lazy"
+          />
+          <figcaption>
+            Karte: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a>-Mitwirkende,
+            <a href="https://openfreemap.org" rel="noopener">OpenFreeMap</a>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap cols cols--two section">
+    {
+      e.ansprechpersonen.map((p) => (
+        <section>
+          <h2>{p.name}</h2>
+          <p>{p.aufgabe}</p>
+          <p>
+            <a href={`tel:${p.telefonLink}`}>{p.telefon}</a>
+            <br />
+            <a href={`mailto:${p.email}`}>{p.email}</a>
+          </p>
+        </section>
+      ))
+    }
+    <section>
+      <h2>Träger</h2>
+      <p>
+        {e.traeger.name}<br />
+        {e.traeger.strasse}<br />
+        {e.traeger.ort}
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 40px;
+    align-items: start;
+    padding-bottom: var(--section);
+  }
+
+  .cols--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cols h2 {
+    margin-bottom: 14px;
+    font-size: 1.5rem;
+  }
+
+  .cols section:not(.box) a {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .box .pairs {
+    margin-top: 14px;
+  }
+
+  .box a:not(.phone-link) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .times dd {
+    white-space: nowrap;
+  }
+
+  .places-title {
+    margin-bottom: 28px;
+  }
+
+  .places {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 32px 48px;
+    align-items: start;
+  }
+
+  .place-list {
+    display: grid;
+    gap: 28px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .place-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+  }
+
+  .pin {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--orange);
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .place-list h3 {
+    margin-bottom: 6px;
+  }
+
+  .place-list p {
+    margin-bottom: 0.5em;
+  }
+
+  .map {
+    margin: 0;
+  }
+
+  .map img {
+    width: 100%;
+    border-radius: var(--r-panel);
+  }
+
+  .map figcaption {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .map figcaption a {
+    color: inherit;
+  }
+
+  @media (width <= 900px) {
+    .cols,
+    .cols--two,
+    .places {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,31 @@
+---
+// Kasten „So erreichen Sie uns": Telefonnummer, Anmeldung und Telefonzeiten aus den Einstellungen.
+import einstellungen from '../data/einstellungen.json';
+
+interface Props {
+  titel?: string;
+}
+
+const { titel = 'So erreichen Sie uns' } = Astro.props;
+const e = einstellungen;
+---
+
+<aside class="box box--orange reach" aria-labelledby="reach-title">
+  <h2 id="reach-title">{titel}</h2>
+  <p><a class="phone-link" href={`tel:${e.telefonLink}`}>{e.telefon}</a></p>
+  <p><strong>Telefonzeiten:</strong> {e.telefonzeiten.zeit}</p>
+  <p>{e.anmeldung.text}</p>
+  <p>{e.anmeldung.kinder}</p>
+  <p><a href={`mailto:${e.email}`}>{e.email}</a></p>
+</aside>
+
+<style>
+  .reach p {
+    margin-bottom: 0.7em;
+  }
+
+  .reach a:not(.phone-link) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+</style>

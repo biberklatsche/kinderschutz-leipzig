@@ -1,0 +1,157 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Erreichbarkeit from '../../components/Erreichbarkeit.astro';
+import { alleAngebote, BEREICH_TITEL, type Angebot } from '../../lib/inhalte';
+
+export async function getStaticPaths() {
+  const angebote = await alleAngebote();
+  return angebote.map((angebot) => ({
+    params: { slug: angebot.id },
+    props: {
+      angebot,
+      eltern: angebote.find((a) => a.id === angebot.data.uebergeordnet),
+      unterseiten: angebote.filter((a) => a.data.uebergeordnet === angebot.id),
+      geschwister: angebot.data.uebergeordnet
+        ? angebote.filter((a) => a.data.uebergeordnet === angebot.data.uebergeordnet && a.id !== angebot.id)
+        : [],
+    },
+  }));
+}
+
+interface Props {
+  angebot: Angebot;
+  eltern?: Angebot;
+  unterseiten: Angebot[];
+  geschwister: Angebot[];
+}
+
+const { angebot, eltern, unterseiten, geschwister } = Astro.props;
+const { Content } = await render(angebot);
+const a = angebot.data;
+---
+
+<BaseLayout title={a.title} description={a.kurztext}>
+  <div class="wrap page-head">
+    {
+      eltern ? (
+        <a class="back-link" href={`/angebote/${eltern.id}/`}>Zurück zu: {eltern.data.title}</a>
+      ) : (
+        <a class="back-link" href="/angebote/">Alle Angebote ({BEREICH_TITEL[a.bereich]})</a>
+      )
+    }
+    <h1>{a.title}</h1>
+    <p class="lead">{a.kurztext}</p>
+  </div>
+
+  <div class="wrap layout">
+    <div>
+      {a.bild && <Image class="lead-image" src={a.bild} alt="" widths={[480, 900]} sizes="(max-width: 900px) 100vw, 680px" />}
+      <div class="prose"><Content /></div>
+
+      {
+        unterseiten.length > 0 && (
+          <section class="children">
+            <h2>Die Angebote im Einzelnen</h2>
+            <ul class="rows">
+              {unterseiten.map((u) => (
+                <li>
+                  <h3>
+                    <a href={`/angebote/${u.id}/`}>{u.data.title}</a>
+                  </h3>
+                  <p>{u.data.kurztext}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+
+    <div class="side">
+      <Erreichbarkeit titel="Fragen und Anmeldung" />
+      {
+        geschwister.length > 0 && eltern && (
+          <nav class="box" aria-labelledby="more-title">
+            <h2 id="more-title">Weitere Angebote zur Prävention</h2>
+            <ul class="links">
+              {geschwister.map((g) => (
+                <li>
+                  <a href={`/angebote/${g.id}/`}>{g.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 40px 64px;
+    align-items: start;
+    padding-bottom: var(--section);
+  }
+
+  .lead-image {
+    width: auto;
+    max-width: min(100%, 680px);
+    max-height: 420px;
+    margin-bottom: 32px;
+    border-radius: var(--r-panel);
+  }
+
+  .side {
+    display: grid;
+    gap: 20px;
+  }
+
+  .children {
+    margin-top: 48px;
+  }
+
+  .children h2 {
+    margin-bottom: 16px;
+  }
+
+  .children li {
+    padding-block: 18px;
+  }
+
+  .children h3 a {
+    color: var(--ink);
+    text-decoration-color: var(--orange);
+    text-decoration-thickness: 2px;
+  }
+
+  .children p {
+    max-width: 62ch;
+    margin: 6px 0 0;
+  }
+
+  .links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .links li + li {
+    margin-top: 8px;
+  }
+
+  .links a {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  @media (width <= 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

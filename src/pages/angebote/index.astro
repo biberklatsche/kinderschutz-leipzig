@@ -1,0 +1,220 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Erreichbarkeit from '../../components/Erreichbarkeit.astro';
+import { alleAngebote, BEREICH_TITEL, ZIELGRUPPE_TITEL } from '../../lib/inhalte';
+import { BEREICHE, ZIELGRUPPEN } from '../../content.config';
+
+const angebote = await alleAngebote();
+const haupt = angebote.filter((a) => !a.data.uebergeordnet);
+const unter = (id: string) => angebote.filter((a) => a.data.uebergeordnet === id);
+---
+
+<BaseLayout
+  title="Angebote"
+  description="Beratung, Gruppen, Prävention und Fachberatung: alle Angebote des Kinderschutz-Zentrums Leipzig im Überblick."
+>
+  <div class="wrap page-head">
+    <h1>Angebote</h1>
+    <p class="lead">
+      Beratung, Gruppen, Prävention und Fachberatung für Kinder, Jugendliche, Eltern und Fachkräfte.
+    </p>
+  </div>
+
+  <div class="wrap layout">
+    <div>
+      <div class="filter" role="group" aria-label="Angebote nach Zielgruppe filtern">
+        <span class="filter-label">Angebote für</span>
+        <button type="button" class="chip" data-filter="" aria-pressed="true">alle</button>
+        {
+          ZIELGRUPPEN.map((z) => (
+            <button type="button" class="chip" data-filter={z} aria-pressed="false">
+              {ZIELGRUPPE_TITEL[z]}
+            </button>
+          ))
+        }
+      </div>
+
+      {
+        BEREICHE.map((bereich) => (
+          <section class="group" data-group>
+            <h2>{BEREICH_TITEL[bereich]}</h2>
+            <ul class="rows">
+              {haupt
+                .filter((a) => a.data.bereich === bereich)
+                .map((a) => {
+                  const kinder = unter(a.id);
+                  const gruppen = [...new Set([...a.data.zielgruppen, ...kinder.flatMap((k) => k.data.zielgruppen)])];
+                  return (
+                    <li data-offer data-zielgruppen={gruppen.join(' ')}>
+                      <h3>
+                        <a href={`/angebote/${a.id}/`}>{a.data.title}</a>
+                      </h3>
+                      <p>{a.data.kurztext}</p>
+                      <p class="muted audience">Für {a.data.zielgruppen.map((z) => ZIELGRUPPE_TITEL[z]).join(', ')}</p>
+                      {kinder.length > 0 && (
+                        <ul class="sub">
+                          {kinder.map((k) => (
+                            <li data-offer data-zielgruppen={k.data.zielgruppen.join(' ')}>
+                              <a href={`/angebote/${k.id}/`}>{k.data.title}</a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+            </ul>
+          </section>
+        ))
+      }
+      <p class="empty" data-empty hidden>Für diese Auswahl gibt es gerade kein Angebot.</p>
+    </div>
+
+    <Erreichbarkeit />
+  </div>
+</BaseLayout>
+
+<script>
+  // Filtert die Angebotsliste nach Zielgruppe; ohne JavaScript bleiben alle Angebote sichtbar.
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+  const offers = [...document.querySelectorAll<HTMLElement>('[data-offer]')];
+  const groups = [...document.querySelectorAll<HTMLElement>('[data-group]')];
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+
+  function apply(filter: string) {
+    chips.forEach((c) => c.setAttribute('aria-pressed', String((c.dataset.filter ?? '') === filter)));
+    offers.forEach((o) => {
+      o.hidden = filter !== '' && !(o.dataset.zielgruppen ?? '').split(' ').includes(filter);
+    });
+    let visible = 0;
+    groups.forEach((g) => {
+      const count = g.querySelectorAll('.rows > [data-offer]:not([hidden])').length;
+      g.hidden = count === 0;
+      visible += count;
+    });
+    if (empty) empty.hidden = visible > 0;
+  }
+
+  const known = chips.map((c) => c.dataset.filter ?? '');
+  const initial = new URLSearchParams(location.search).get('fuer') ?? '';
+  apply(known.includes(initial) ? initial : '');
+
+  chips.forEach((chip) =>
+    chip.addEventListener('click', () => {
+      const filter = chip.dataset.filter ?? '';
+      apply(filter);
+      const url = new URL(location.href);
+      if (filter) url.searchParams.set('fuer', filter);
+      else url.searchParams.delete('fuer');
+      history.replaceState(null, '', url);
+    }),
+  );
+</script>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 40px 64px;
+    align-items: start;
+    padding-bottom: var(--section);
+  }
+
+  .filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+
+  .filter-label {
+    margin-right: 4px;
+    font-weight: 600;
+  }
+
+  .chip {
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    background: var(--mist);
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .group + .group {
+    margin-top: 48px;
+  }
+
+  .group h2 {
+    margin-bottom: 16px;
+  }
+
+  .rows > li {
+    padding-block: 20px;
+  }
+
+  .rows h3 a {
+    color: var(--ink);
+    text-decoration-color: var(--orange);
+    text-decoration-thickness: 2px;
+  }
+
+  .rows h3 a:hover {
+    color: var(--orange-deep);
+  }
+
+  .rows p {
+    max-width: 62ch;
+    margin: 6px 0 0;
+  }
+
+  .audience {
+    font-size: 0.9375rem;
+  }
+
+  .sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sub a {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: var(--r-control);
+    background: var(--mist);
+    color: var(--ink);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .sub a:hover {
+    background: var(--orange-soft);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (width <= 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

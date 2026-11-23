@@ -1,0 +1,459 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MeldungenListe from '../components/MeldungenListe.astro';
+import Downloads from '../components/Downloads.astro';
+import einstellungen from '../data/einstellungen.json';
+import { alleAngebote, alleMeldungen, BEREICH_TITEL } from '../lib/inhalte';
+import { BEREICHE } from '../content.config';
+import verbandLogo from '../assets/bilder/start/bag-kinderschutz-zentren.png';
+
+const seite = await getEntry('seiten', 'start');
+if (!seite) throw new Error('src/content/seiten/start.md fehlt');
+const s = seite.data;
+const { Content } = await render(seite);
+
+const e = einstellungen;
+const angebote = (await alleAngebote()).filter((a) => !a.data.uebergeordnet);
+const meldungen = (await alleMeldungen()).slice(0, 3);
+
+// Die Überschrift bricht am Gedankenstrich um: „Kinder haben Fragen –“ / „Eltern auch“
+// Winziger Ausschnitt vom linken Bildrand (nur Mauer): liefert, stark weichgezeichnet, die Farbfläche
+// hinter der Überschrift, damit die Kachel wie ein nach oben verlängertes Foto wirkt.
+const heroFlaeche = s.bild ? await getImage({ src: s.bild, width: 6, height: 6, fit: 'cover', position: 'left top', format: 'webp' }) : null;
+
+const [zeile1, ...rest] = s.title.split(' – ');
+const zeile2 = rest.join(' – ');
+---
+
+<BaseLayout description={s.beschreibung}>
+  <section class="hero">
+    <div class="wrap">
+      <div class:list={['hero-tile', { 'hero-tile--image': s.bild }]} style={heroFlaeche ? `--hero-flaeche: url(${heroFlaeche.src})` : undefined}>
+        <div class="hero-text">
+          <h1>{zeile2 ? <><span>{zeile1}&nbsp;–</span> <span>{zeile2}</span></> : s.title}</h1>
+          {s.einleitung && <p class="lead">{s.einleitung}</p>}
+        </div>
+        {
+          s.bild && (
+            <Image
+              class="hero-image"
+              src={s.bild}
+              alt={s.bildBeschreibung ?? ''}
+              widths={[640, 985]}
+              sizes="(max-width: 1184px) 100vw, 1120px"
+              loading="eager"
+              fetchpriority="high"
+            />
+          )
+        }
+      </div>
+
+      <div class="doors">
+        <div class="door door--du">
+          <h2>{s.kinderTitel}</h2>
+          <p>{s.kinderText}</p>
+          <p class="door-actions">
+            <a class="door-phone" href={`tel:${e.telefonLink}`}>Ruf uns an: {e.telefon}</a>
+            <a href={`mailto:${e.email}`}>oder schreib uns eine Mail</a>
+          </p>
+        </div>
+
+        <div class="door door--sie">
+          <h2>{s.elternTitel}</h2>
+          <p>{s.elternText}</p>
+          <p class="door-actions">
+            <a class="btn btn--light" href="/angebote/?fuer=eltern">Angebote für Eltern ansehen</a>
+            <a href="/kontakt/">So melden Sie sich an</a>
+          </p>
+        </div>
+
+        <div class="door door--fach">
+          <div>
+            <h2>{s.fachkraefteTitel}</h2>
+            <p>{s.fachkraefteText}</p>
+          </div>
+          <a class="btn btn--quiet" href="/angebote/?fuer=fachkraefte">Angebote für Fachkräfte ansehen</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section promise">
+    <div class="wrap promise-grid">
+      <div>
+        <h2>{s.merkmaleTitel}</h2>
+        <ul class="traits">
+          {s.merkmale?.map((m) => <li>{m}</li>)}
+        </ul>
+      </div>
+      <div class="box signup">
+        <h3>So melden Sie sich an</h3>
+        <p>{e.anmeldung.text}</p>
+        <p>{e.anmeldung.anrufbeantworter}</p>
+        <p><strong>Telefonzeiten:</strong> {e.telefonzeiten.zeit}</p>
+        <p><a class="more-link" href="/kontakt/">Kontakt und Öffnungszeiten</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--mist">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Unsere Angebote</h2>
+        <a class="more-link" href="/angebote/">Alle Angebote im Überblick</a>
+      </div>
+      <div class="offer-index">
+        {
+          BEREICHE.map((bereich) => (
+            <section>
+              <h3>{BEREICH_TITEL[bereich]}</h3>
+              <ul>
+                {angebote
+                  .filter((a) => a.data.bereich === bereich)
+                  .map((a) => (
+                    <li>
+                      <a href={`/angebote/${a.id}/`}>{a.data.title}</a>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Aktuelles</h2>
+        <a class="more-link" href="/aktuelles/">Alle Meldungen</a>
+      </div>
+      <MeldungenListe meldungen={meldungen} ebene="h3" />
+    </div>
+  </section>
+
+  <section class="section section--mist">
+    <div class="wrap method">
+      <div>
+        <h2>{s.arbeitsweiseTitel}</h2>
+        <div class="prose"><Content /></div>
+      </div>
+      <a class="verband" href={e.verband.link} rel="noopener">
+        <Image src={verbandLogo} alt="Die Kinderschutz-Zentren" width={150} />
+        <span>{e.verband.text}</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Zum Herunterladen</h2>
+      </div>
+      <Downloads />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: clamp(12px, 2vw, 24px) 0;
+  }
+
+  /* Bildkachel: Hinter der Schrift liegt eine weichgezeichnete Fläche in den Farben der Mauer,
+     das Foto blendet von unten ein. So bleibt der Text lesbar und die Kinder werden nicht verdeckt. */
+  .hero-tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--r-panel);
+    background: var(--ink);
+    color: #fff;
+    isolation: isolate;
+  }
+
+  .hero-tile--image {
+    background: #8a4f3b;
+  }
+
+  .hero-tile--image::before {
+    content: '';
+    position: absolute;
+    inset: -120px;
+    z-index: -2;
+    background: var(--hero-flaeche) center / cover no-repeat;
+    filter: blur(56px);
+  }
+
+  /* Leichte Abdunklung von oben, damit weiße Schrift auch über den hellen Fugen lesbar bleibt */
+  .hero-tile--image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to bottom, rgb(52 24 14 / 0.5) 0%, rgb(52 24 14 / 0.34) 48%, rgb(52 24 14 / 0) 80%);
+    pointer-events: none;
+  }
+
+  .hero-text {
+    position: relative;
+    z-index: 2;
+    padding: clamp(24px, 4vw, 48px) clamp(22px, 3.4vw, 40px) clamp(24px, 4vw, 48px);
+  }
+
+  .hero-tile--image .hero-text {
+    padding-bottom: 0;
+  }
+
+  .hero-image {
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    margin-top: clamp(-64px, -5vw, -20px);
+    aspect-ratio: 985 / 240;
+    object-fit: cover;
+    object-position: 62% 50%;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 46%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 46%);
+  }
+
+  .hero h1 {
+    color: #fff;
+    font-size: clamp(2.1rem, 0.8rem + 5.6vw, 5.25rem);
+    text-wrap: wrap;
+    font-stretch: 78%;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 span {
+    display: block;
+  }
+
+  .hero .lead {
+    max-width: 56ch;
+    margin: clamp(16px, 2.4vw, 24px) 0 0;
+    text-shadow: 0 1px 8px rgb(52 24 14 / 0.6);
+  }
+
+  /* Zwei Türen: links wird geduzt, rechts gesiezt, so wie die Überschrift beide anspricht */
+  .doors {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .door {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(22px, 3.4vw, 36px);
+    border-radius: var(--r-panel);
+  }
+
+  .door h2 {
+    margin-bottom: 14px;
+    font-size: clamp(1.5rem, 1.2rem + 1.3vw, 2.125rem);
+  }
+
+  .door p {
+    max-width: 46ch;
+  }
+
+  .door-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 22px;
+    margin: auto 0 0;
+    padding-top: 12px;
+  }
+
+  .door--du {
+    background: var(--orange);
+    color: var(--ink);
+  }
+
+  .door--du a {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .door-phone {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 10px 20px;
+    border-radius: var(--r-control);
+    background: var(--ink);
+    text-decoration: none;
+  }
+
+  .door--du .door-phone {
+    color: #fff;
+  }
+
+  .door--du .door-phone:hover {
+    background: #fff;
+    color: var(--ink);
+  }
+
+  .door--sie {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .door--sie h2 {
+    color: #fff;
+  }
+
+  .door--sie a:not(.btn) {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .door--fach {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    padding-block: clamp(18px, 2.6vw, 26px);
+    border: 2px solid var(--ink);
+  }
+
+  .door--fach h2 {
+    margin-bottom: 6px;
+    font-size: 1.5rem;
+  }
+
+  .door--fach p {
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .promise-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 32px 56px;
+    align-items: start;
+  }
+
+  .traits {
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-stretch: 78%;
+    font-size: clamp(2rem, 1.2rem + 3.4vw, 3.5rem);
+    font-weight: 650;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+  }
+
+  .traits li {
+    padding-left: 0.6em;
+    border-left: 0.14em solid var(--orange);
+  }
+
+  .traits li + li {
+    margin-top: 0.14em;
+  }
+
+  .signup p {
+    margin-bottom: 0.7em;
+  }
+
+  .offer-index {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+  }
+
+  .offer-index h3 {
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--orange);
+  }
+
+  .offer-index ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .offer-index li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .offer-index a {
+    display: block;
+    padding-block: 12px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+
+  .offer-index a:hover {
+    color: var(--orange-deep);
+    text-decoration: underline;
+  }
+
+  .method {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 32px 64px;
+    align-items: start;
+  }
+
+  .method h2 {
+    margin-bottom: 20px;
+  }
+
+  .verband {
+    display: grid;
+    gap: 12px;
+    padding: 20px;
+    border-radius: var(--r-panel);
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .verband:hover span {
+    text-decoration: underline;
+  }
+
+  @media (width <= 900px) {
+    .offer-index {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .promise-grid,
+    .method {
+      grid-template-columns: 1fr;
+    }
+
+    .verband {
+      max-width: 240px;
+    }
+  }
+
+  @media (width <= 680px) {
+    .doors,
+    .offer-index {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-image {
+      aspect-ratio: 21 / 10;
+      object-position: 59% 50%;
+    }
+  }
+</style>

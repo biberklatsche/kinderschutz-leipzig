@@ -1,0 +1,87 @@
+---
+import { Image } from 'astro:assets';
+import { datum, isoDatum, type Meldung } from '../lib/inhalte';
+
+interface Props {
+  meldungen: Meldung[];
+  /** Überschriftenebene der Titel, passend zur umgebenden Seite */
+  ebene?: 'h2' | 'h3';
+}
+
+const { meldungen, ebene: Titel = 'h2' } = Astro.props;
+---
+
+<ul class="rows news">
+  {
+    meldungen.map((m) => (
+      <li>
+        <article class="item">
+          <time datetime={isoDatum(m.data.date)}>{datum(m.data.date)}</time>
+          <div class="body">
+            <Titel class="title">
+              <a href={`/aktuelles/${m.id}/`}>{m.data.title}</a>
+            </Titel>
+            {m.data.teaser && <p>{m.data.teaser}</p>}
+          </div>
+          {m.data.bild && (
+            <Image class="thumb" src={m.data.bild} alt="" width={176} height={132} fit="cover" loading="lazy" />
+          )}
+        </article>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .item {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr) auto;
+    gap: 8px 28px;
+    align-items: start;
+    padding-block: 22px;
+  }
+
+  time {
+    padding-top: 0.2em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .title {
+    font-size: 1.3125rem;
+    line-height: 1.2;
+  }
+
+  .title a {
+    color: var(--ink);
+    text-decoration-color: var(--orange);
+    text-decoration-thickness: 2px;
+  }
+
+  .title a:hover {
+    color: var(--orange-deep);
+  }
+
+  .body p {
+    max-width: 62ch;
+    margin: 6px 0 0;
+  }
+
+  .thumb {
+    width: 88px;
+    height: 66px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  @media (width <= 720px) {
+    .item {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    time {
+      grid-column: 1 / -1;
+      padding-top: 0;
+    }
+  }
+</style>

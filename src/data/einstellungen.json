@@ -1,0 +1,98 @@
+{
+  "name": "Kinderschutz-Zentrum Leipzig",
+  "beschreibung": "Erziehungs- und Familienberatungsstelle für Kinder, Jugendliche, Eltern und Fachkräfte in Leipzig.",
+  "telefon": "(0341) 960 28 37",
+  "telefonLink": "+493419602837",
+  "fax": "(0341) 960 28 38",
+  "email": "info@kinderschutz-leipzig.de",
+  "hinweis": {
+    "aktiv": false,
+    "text": ""
+  },
+  "schnellausstieg": {
+    "aktiv": true,
+    "beschriftung": "Seite verlassen",
+    "ziel": "https://www.google.de/"
+  },
+  "anmeldung": {
+    "text": "Neuanmeldungen sind telefonisch an jedem ersten Dienstag im Monat von 9.00 bis 10.00 Uhr und von 17.00 bis 18.00 Uhr möglich, entsprechend unserer Kapazitäten.",
+    "kinder": "Anliegen von Kindern und Jugendlichen nehmen wir jederzeit entgegen.",
+    "anrufbeantworter": "Wenn Sie uns Ihren Namen, Ihr Anliegen und Ihre Telefonnummer auf den Anrufbeantworter sprechen, rufen wir Sie gern zurück."
+  },
+  "telefonzeiten": {
+    "zeit": "Montag bis Freitag, 8.30 bis 13.00 Uhr",
+    "hinweis": "Unsere Telefonzeiten sind derzeit leider eingeschränkt. Bitte sprechen Sie auf unseren Anrufbeantworter, falls wir einmal nicht gleich am Telefon sein sollten. Wir rufen Sie zeitnah zurück."
+  },
+  "oeffnungszeiten": [
+    { "tage": "Montag", "zeit": "8.00 bis 15.30 Uhr" },
+    { "tage": "Dienstag und Mittwoch", "zeit": "8.00 bis 19.00 Uhr" },
+    { "tage": "Donnerstag", "zeit": "8.00 bis 15.30 Uhr" },
+    { "tage": "Freitag", "zeit": "8.00 bis 13.00 Uhr" }
+  ],
+  "standorte": [
+    {
+      "name": "Beratungsstelle Südvorstadt",
+      "strasse": "Brandvorwerkstraße 80",
+      "ort": "04275 Leipzig",
+      "hinweis": "Kein rollstuhlgerechter Zugang."
+    },
+    {
+      "name": "Nebenstelle Lößnig",
+      "strasse": "Bornaische Straße 101",
+      "ort": "04279 Leipzig",
+      "hinweis": "Kein rollstuhlgerechter Zugang. Den Beratungsraum erreicht man über eine Treppenstufe."
+    }
+  ],
+  "ansprechpersonen": [
+    {
+      "name": "Sophie Pasch",
+      "aufgabe": "Präventionsfachkraft, Ansprechperson für Presse und Öffentlichkeitsarbeit",
+      "telefon": "0151 678 59 586",
+      "telefonLink": "+4915167859586",
+      "email": "pasch@kinderschutz-leipzig.de"
+    }
+  ],
+  "traeger": {
+    "name": "Wabe e.V.",
+    "strasse": "Am Kanal 28",
+    "ort": "04179 Leipzig"
+  },
+  "bank": {
+    "inhaber": "Wabe e.V. Leipzig",
+    "institut": "Bank für Sozialwirtschaft",
+    "iban": "DE08 3702 0500 0003 5045 01",
+    "bic": "BFSWDE33XXX"
+  },
+  "foerderhinweis": "Gefördert durch das Amt für Jugend und Familie der Stadt Leipzig",
+  "verband": {
+    "text": "Mitglied der Bundesarbeitsgemeinschaft der Kinderschutz-Zentren",
+    "link": "https://www.kinderschutz-zentren.org"
+  },
+  "downloads": [
+    {
+      "gruppe": "Informatives",
+      "titel": "Häufig gestellte Fragen",
+      "datei": "/downloads/Haeufig_gestellte_Fragen_2023.pdf"
+    },
+    {
+      "gruppe": "Informatives",
+      "titel": "Vorgehen bei Verdacht auf sexuelle Misshandlung",
+      "datei": "/downloads/Vorgehen_Verdacht_sexuelle_Misshandlung.pdf"
+    },
+    {
+      "gruppe": "Informatives",
+      "titel": "Verhaltenskodex des Kinderschutz-Zentrums Leipzig",
+      "datei": "/downloads/Verhaltenskodex_Kinderschutz-Zentrum_Leipzig.pdf"
+    },
+    {
+      "gruppe": "Praktikum, Weiterbildung und Stellenangebote",
+      "titel": "Praktikum im Kinderschutz-Zentrum",
+      "datei": "/downloads/Praktikum_im_Kinderschutz-Zentrum.pdf"
+    },
+    {
+      "gruppe": "Praktikum, Weiterbildung und Stellenangebote",
+      "titel": "Weiterbildungsangebote zum Thema Kinderschutz an der Volkshochschule",
+      "datei": "/downloads/VHS_Herbst_26_Kinderschutz.pdf"
+    }
+  ]
+}

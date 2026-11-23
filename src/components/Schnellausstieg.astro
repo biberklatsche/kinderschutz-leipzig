@@ -1,0 +1,163 @@
+---
+// „Seite verlassen": immer sichtbarer Knopf für Menschen, die beim Lesen nicht gesehen werden wollen.
+//
+// Ein Klick blendet die Seite sofort aus und öffnet die Zielseite (Standard: Google). Danach führen
+// weder „Zurück" noch „Vorwärts" im Browser wieder auf diese Website:
+//   1. Das Skript springt zur ersten Seite zurück, die in diesem Tab von dieser Website geöffnet wurde.
+//   2. Diesen Verlaufseintrag markiert es als gesperrt und legt dahinter einen neuen Eintrag an, den
+//      die Zielseite ersetzt. Dadurch verwirft der Browser alle „Vorwärts"-Einträge (die später
+//      besuchten Seiten).
+//   3. Wer von der Zielseite aus „Zurück" drückt, landet auf dem gesperrten Eintrag; der ersetzt sich
+//      sofort wieder durch die Zielseite, ohne etwas anzuzeigen.
+// Ohne JavaScript bleibt der Knopf ein normaler Link.
+//
+// Grenze: Die Chronik des Browsers (Liste aller besuchten Seiten) lässt sich von einer Website
+// nicht löschen.
+import einstellungen from '../data/einstellungen.json';
+
+const { beschriftung, ziel } = einstellungen.schnellausstieg;
+---
+
+<a class="exit" href={ziel} rel="noreferrer" data-schnellausstieg>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+    <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></path>
+  </svg>
+  <span>{beschriftung}</span>
+  <span class="visually-hidden">(öffnet sofort eine Suchmaschine)</span>
+</a>
+
+<script is:inline>
+  (function () {
+    var KEY_EXIT = 'ksz-verlassen'; // Zeitpunkt eines laufenden Ausstiegs
+    var KEY_INDEX = 'ksz-verlauf'; // Position der aktuellen Seite seit der ersten Seite dieser Website im Tab
+    var link = document.querySelector('[data-schnellausstieg]');
+    if (!link) return;
+    var target = link.href;
+    var store = {
+      get: function (k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+      set: function (k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+      del: function (k) { try { sessionStorage.removeItem(k); } catch (e) {} },
+    };
+
+    function hide() {
+      document.documentElement.style.visibility = 'hidden';
+    }
+
+    function state() {
+      try { return window.history.state || {}; } catch (e) { return {}; }
+    }
+
+    function setState(changes) {
+      try {
+        var next = {};
+        var current = state();
+        for (var key in current) next[key] = current[key];
+        for (var name in changes) next[name] = changes[name];
+        window.history.replaceState(next, '');
+      } catch (e) {}
+    }
+
+    // Sperrt den aktuellen Verlaufseintrag und öffnet das Ziel in einem neuen Eintrag dahinter.
+    function lockAndLeave() {
+      hide();
+      store.del(KEY_EXIT);
+      store.del(KEY_INDEX);
+      setState({ kszGesperrt: true });
+      // Ein neuer Eintrag über pushState verwirft die „Vorwärts"-Einträge sofort, auch während die
+      // Seite noch lädt (eine normale Weiterleitung würde der Browser dann nur als Ersetzung behandeln).
+      // Diesen neuen Eintrag ersetzt anschließend das Ziel.
+      try {
+        window.history.pushState({ kszGesperrt: true }, '');
+      } catch (e) {}
+      window.location.replace(target);
+    }
+
+    // Wird beim Laden und beim Zurückkehren aus dem Zwischenspeicher des Browsers aufgerufen.
+    // Gibt true zurück, wenn die Seite gerade verlassen wird.
+    function leaveIfNeeded() {
+      // Gesperrter Eintrag (jemand hat nach dem Ausstieg „Zurück" gedrückt): nichts zeigen, Ziel einsetzen.
+      if (state().kszGesperrt) {
+        hide();
+        window.location.replace(target);
+        return true;
+      }
+      // Laufender Ausstieg: dies ist die erste Seite der Website im Tab.
+      var started = Number(store.get(KEY_EXIT));
+      if (started) {
+        store.del(KEY_EXIT);
+        var age = Date.now() - started;
+        if (age >= 0 && age < 5000) {
+          lockAndLeave();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Merkt sich, die wievielte Seite dieser Website im Verlauf des Tabs gerade angezeigt wird.
+    function remember() {
+      var index = state().kszIndex;
+      if (typeof index !== 'number') {
+        var last = parseInt(store.get(KEY_INDEX), 10);
+        index = isNaN(last) ? 0 : last + 1;
+        setState({ kszIndex: index });
+      }
+      store.set(KEY_INDEX, String(index));
+    }
+
+    if (leaveIfNeeded()) return;
+    remember();
+    // Seiten aus dem Zwischenspeicher des Browsers (Zurück/Vorwärts) führen kein Skript neu aus.
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted && !leaveIfNeeded()) remember();
+    });
+
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      hide();
+      var index = parseInt(store.get(KEY_INDEX), 10) || 0;
+      if (index > 0) {
+        store.set(KEY_EXIT, String(Date.now()));
+        window.history.go(-index);
+        // Falls der Sprung zurück nicht klappt, von hier aus verlassen.
+        window.setTimeout(lockAndLeave, 1500);
+      } else {
+        lockAndLeave();
+      }
+    });
+  })();
+</script>
+
+<style>
+  .exit {
+    position: fixed;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 120;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 10px 20px 10px 16px;
+    border: 3px solid #fff;
+    border-radius: 999px;
+    background: var(--ink);
+    box-shadow: 0 6px 22px rgb(31 45 58 / 0.35);
+    color: #fff;
+    font-weight: 700;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+
+  .exit:hover,
+  .exit:focus-visible {
+    background: #b3261e;
+    color: #fff;
+  }
+
+  .exit:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 999px;
+  }
+</style>

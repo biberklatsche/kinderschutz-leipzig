@@ -1,0 +1,8 @@
+---
+import AktuellesSeite from '../../components/AktuellesSeite.astro';
+import { alleMeldungen, PRO_SEITE } from '../../lib/inhalte';
+
+const alle = await alleMeldungen();
+---
+
+<AktuellesSeite meldungen={alle.slice(0, PRO_SEITE)} seite={1} seiten={Math.ceil(alle.length / PRO_SEITE)} />

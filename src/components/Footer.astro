@@ -1,0 +1,132 @@
+---
+import einstellungen from '../data/einstellungen.json';
+
+const e = einstellungen;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <section>
+        <h2>Kontakt</h2>
+        <p>
+          {e.name}<br />
+          {e.standorte[0].strasse}<br />
+          {e.standorte[0].ort}
+        </p>
+        <p>
+          Telefon: <a href={`tel:${e.telefonLink}`}>{e.telefon}</a><br />
+          Fax: {e.fax}<br />
+          <a href={`mailto:${e.email}`}>{e.email}</a>
+        </p>
+      </section>
+
+      <section>
+        <h2>Zeiten</h2>
+        <p><strong>Telefon:</strong> {e.telefonzeiten.zeit}</p>
+        <dl class="pairs">
+          {
+            e.oeffnungszeiten.map((o) => (
+              <>
+                <dt>{o.tage}</dt>
+                <dd>{o.zeit}</dd>
+              </>
+            ))
+          }
+        </dl>
+      </section>
+
+      <section>
+        <h2>Träger</h2>
+        <p>
+          {e.traeger.name}<br />
+          {e.traeger.strasse}<br />
+          {e.traeger.ort}
+        </p>
+        <p>
+          {e.bank.institut}<br />
+          IBAN: {e.bank.iban}<br />
+          BIC: {e.bank.bic}
+        </p>
+      </section>
+    </div>
+
+    <p class="support">
+      {e.foerderhinweis}. <a href={e.verband.link} rel="noopener">{e.verband.text}</a>.
+    </p>
+
+    {
+      e.schnellausstieg.aktiv && (
+        <p class="exit-note">
+          Der Knopf „{e.schnellausstieg.beschriftung}“ öffnet sofort eine Suchmaschine. Die Chronik des Browsers wird dabei
+          nicht gelöscht.
+        </p>
+      )
+    }
+
+    <div class="bottom">
+      <span>© {year} {e.name}</span>
+      <nav aria-label="Rechtliches">
+        <a href="/impressum/">Impressum</a>
+        <a href="/datenschutz/">Datenschutz</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    flex-shrink: 0;
+    padding-block: clamp(40px, 6vw, 64px) 96px;
+    background: var(--mist);
+    font-size: 1rem;
+  }
+
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 40px;
+  }
+
+  h2 {
+    margin-bottom: 12px;
+    font-size: 1.3125rem;
+  }
+
+  a {
+    color: var(--ink);
+  }
+
+  .support,
+  .exit-note {
+    max-width: 70ch;
+    margin: 32px 0 0;
+  }
+
+  .exit-note {
+    margin-top: 12px;
+    color: var(--muted);
+  }
+
+  .bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  .bottom nav {
+    display: flex;
+    gap: 20px;
+  }
+
+  @media (width <= 860px) {
+    .cols {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

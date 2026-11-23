@@ -1,0 +1,120 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { alleMeldungen, datum, isoDatum, type Meldung } from '../../lib/inhalte';
+
+export async function getStaticPaths() {
+  const alle = await alleMeldungen();
+  return alle.map((meldung, i) => ({
+    params: { id: meldung.id },
+    props: { meldung, neuer: alle[i - 1], aelter: alle[i + 1] },
+  }));
+}
+
+interface Props {
+  meldung: Meldung;
+  neuer?: Meldung;
+  aelter?: Meldung;
+}
+
+const { meldung, neuer, aelter } = Astro.props;
+const { Content } = await render(meldung);
+const m = meldung.data;
+---
+
+<BaseLayout title={m.title} description={m.teaser}>
+  <article>
+    <div class="wrap page-head">
+      <a class="back-link" href="/aktuelles/">Alle Meldungen</a>
+      <p class="date"><time datetime={isoDatum(m.date)}>{datum(m.date)}</time></p>
+      <h1>{m.title}</h1>
+      {m.teaser && <p class="lead">{m.teaser}</p>}
+    </div>
+
+    <div class="wrap body">
+      {m.bild && <Image class="lead-image" src={m.bild} alt="" widths={[480, 900]} sizes="(max-width: 760px) 100vw, 680px" />}
+      <div class="prose"><Content /></div>
+    </div>
+  </article>
+
+  {
+    (neuer || aelter) && (
+      <nav class="wrap neighbours" aria-label="Weitere Meldungen">
+        {aelter ? (
+          <a href={`/aktuelles/${aelter.id}/`} rel="prev">
+            <span class="muted">Ältere Meldung</span>
+            <strong>{aelter.data.title}</strong>
+          </a>
+        ) : (
+          <span />
+        )}
+        {neuer && (
+          <a class="next" href={`/aktuelles/${neuer.id}/`} rel="next">
+            <span class="muted">Neuere Meldung</span>
+            <strong>{neuer.data.title}</strong>
+          </a>
+        )}
+      </nav>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .page-head h1 {
+    max-width: 24ch;
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+  }
+
+  .date {
+    margin: 0 0 10px;
+    color: var(--muted);
+  }
+
+  .body {
+    padding-bottom: clamp(40px, 6vw, 64px);
+  }
+
+  .lead-image {
+    width: auto;
+    max-width: min(100%, 680px);
+    max-height: 480px;
+    margin-bottom: 32px;
+    border-radius: var(--r-panel);
+  }
+
+  .neighbours {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 32px;
+    padding-block: 28px var(--section);
+    border-top: 1px solid var(--line);
+  }
+
+  .neighbours a {
+    display: grid;
+    gap: 4px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .neighbours a:hover strong {
+    text-decoration: underline;
+    text-decoration-color: var(--orange);
+    text-decoration-thickness: 2px;
+  }
+
+  .neighbours .next {
+    text-align: right;
+  }
+
+  @media (width <= 640px) {
+    .neighbours {
+      grid-template-columns: 1fr;
+    }
+
+    .neighbours .next {
+      text-align: left;
+    }
+  }
+</style>

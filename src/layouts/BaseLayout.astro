@@ -1,0 +1,69 @@
+---
+import '@fontsource-variable/bricolage-grotesque/wdth.css';
+import '@fontsource-variable/figtree/index.css';
+import '@fontsource-variable/figtree/wght-italic.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Schnellausstieg from '../components/Schnellausstieg.astro';
+import einstellungen from '../data/einstellungen.json';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = einstellungen.beschreibung } = Astro.props;
+const fullTitle = title ? `${title} | ${einstellungen.name}` : einstellungen.name;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f19110" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="de_DE" />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#inhalt">Direkt zum Inhalt</a>
+    {einstellungen.schnellausstieg.aktiv && <Schnellausstieg />}
+    {
+      einstellungen.hinweis.aktiv && einstellungen.hinweis.text && (
+        <div class="site-notice" role="status">
+          <div class="wrap">{einstellungen.hinweis.text}</div>
+        </div>
+      )
+    }
+    <Header />
+    <main id="inhalt">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      // Blendet die Trennlinie unter der Kopfzeile ein, sobald gescrollt wurde.
+      const root = document.documentElement;
+      const onScroll = () => root.classList.toggle('scrolled', window.scrollY > 0);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    </script>
+  </body>
+</html>
+
+<style>
+  .site-notice {
+    padding-block: 10px;
+    background: var(--orange-soft);
+    color: var(--ink);
+    font-weight: 600;
+  }
+</style>

@@ -1,0 +1,52 @@
+---
+// Einfache Textseiten aus src/content/seiten (Förderverein, Impressum, Datenschutz).
+import { Image } from 'astro:assets';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const TEXTSEITEN = ['foerderverein', 'impressum', 'datenschutz'];
+  const seiten = await getCollection('seiten', ({ id }) => TEXTSEITEN.includes(id));
+  return seiten.map((seite) => ({ params: { seite: seite.id }, props: { seite } }));
+}
+
+interface Props {
+  seite: CollectionEntry<'seiten'>;
+}
+
+const { seite } = Astro.props;
+const { Content } = await render(seite);
+const s = seite.data;
+---
+
+<BaseLayout title={s.title} description={s.beschreibung}>
+  <div class="wrap page-head">
+    <h1>{s.title}</h1>
+    {s.einleitung && <p class="lead">{s.einleitung}</p>}
+  </div>
+
+  <div class="wrap body">
+    <div class="prose"><Content /></div>
+    {s.bild && <Image class="side-image" src={s.bild} alt={s.bildBeschreibung ?? ''} width={420} />}
+  </div>
+</BaseLayout>
+
+<style>
+  .body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 40px 64px;
+    padding-bottom: var(--section);
+  }
+
+  .prose {
+    flex: 1 1 420px;
+  }
+
+  .side-image {
+    flex: 0 1 320px;
+    width: 320px;
+    max-width: 100%;
+  }
+</style>
